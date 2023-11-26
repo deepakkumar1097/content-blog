@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
@@ -7,32 +7,56 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import EditIcon from "@mui/icons-material/Edit";
 import ShareIcon from "@mui/icons-material/Share";
+import AddBoxIcon from "@mui/icons-material/AddBox";
 import Avatar from "@mui/material/Avatar";
+
+import DeleteButton from "../DeleteBlog/DeleteBlog";
 
 import CreatedTime from "../../Services/CreatedTime";
 
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
+import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { updateBlog } from "../../Redux/Slices/blogAction";
+
 export default function BlogList({ blog }) {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const handleEditClick = () => {};
+  const blogs = useSelector((state) => state.blogs);
+
+  console.log(blog);
+
+  useEffect(() => {
+    const storedBlogs = JSON.parse(localStorage.getItem("blogs"));
+
+    if (storedBlogs) {
+      // Dispatch an action to update the Redux store with the loaded blogs
+      storedBlogs.forEach((blog) => {
+        dispatch(updateBlog(blog));
+      });
+    }
+  }, [dispatch]);
   return (
     <div className="cards-container">
       <div className="blog-title">
-        <Typography variant="h4" gutterBottom>
-          Blog
-        </Typography>
+        <Typography variant="h6">Content Blog Application</Typography>
+        <Button variant="contained" onClick={() => navigate("/create")}>
+          <AddBoxIcon /> Add New Blog
+        </Button>
       </div>
       <div className="cards">
-        {blog.map((item, index) => {
+        {blogs.map((item, index) => {
+          const truncatedContent =
+            item.content.slice(0, 50) + (item.content.length > 50 ? "..." : "");
           return (
-            <Card sx={{ maxWidth: 345 }}>
+            <Card key={index} sx={{ maxWidth: 345 }}>
               <CardMedia
                 sx={{
                   height: 140,
-                  backgroundPosition: "0px -80px",
+                  // backgroundPosition: "0px -80px",
                 }}
                 image={item.imageSrc}
                 title="green iguana"
@@ -49,7 +73,7 @@ export default function BlogList({ blog }) {
                   </Typography>
                 </Link>
                 <Typography variant="body2" color="text.secondary">
-                  {item.content}
+                  {truncatedContent}
                 </Typography>
                 <div>
                   <div className="author">
@@ -88,6 +112,7 @@ export default function BlogList({ blog }) {
                 <Button size="small">
                   <ShareIcon sx={{ fontSize: "20px" }} />
                 </Button>
+                <DeleteButton blogId={item.id} />
               </CardActions>
             </Card>
           );
